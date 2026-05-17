@@ -1,0 +1,376 @@
+mysql> CREATE DATABASE IF NOT EXISTS courier_db;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> USE courier_db;
+Database changed
+mysql> 
+mysql> CREATE TABLE Hubs (
+    ->     hub_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     hub_code VARCHAR(10) UNIQUE,
+    ->     city VARCHAR(50),
+    ->     pincode VARCHAR(10),
+    ->     phone VARCHAR(15),
+    ->     manager_name VARCHAR(100)
+    -> );
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> 
+mysql> CREATE TABLE Delivery_Boys (
+    ->     boy_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     name VARCHAR(100),
+    ->     phone VARCHAR(15) UNIQUE,
+    ->     hub_id INT,
+    ->     vehicle_type ENUM('Bike', 'Van'),
+    ->     rating DECIMAL(2,1),
+    ->     FOREIGN KEY (hub_id) REFERENCES Hubs(hub_id)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> 
+mysql> CREATE TABLE Customers (
+    ->     cust_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     name VARCHAR(100),
+    ->     phone VARCHAR(15) UNIQUE,
+    ->     email VARCHAR(100),
+    ->     address TEXT,
+    ->     city VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> 
+mysql> CREATE TABLE Shipments (
+    ->     shipment_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     tracking_id VARCHAR(20) UNIQUE,
+    ->     cust_id INT,
+    ->     pickup_hub_id INT,
+    ->     delivery_hub_id INT,
+    ->     weight_kg DECIMAL(6,2),
+    ->     booking_date DATETIME,
+    ->     FOREIGN KEY (cust_id) REFERENCES Customers(cust_id),
+    ->     FOREIGN KEY (pickup_hub_id) REFERENCES Hubs(hub_id),
+    ->     FOREIGN KEY (delivery_hub_id) REFERENCES Hubs(hub_id)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> 
+mysql> CREATE TABLE Delivery_Status (
+    ->     status_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     shipment_id INT,
+    ->     current_hub_id INT,
+    ->     status ENUM('Booked', 'In Transit', 'Out for Delivery', 'Delivered'),
+    ->     updated_at DATETIME,
+    ->     remarks VARCHAR(255),
+    ->     FOREIGN KEY (shipment_id) REFERENCES Shipments(shipment_id),
+    ->     FOREIGN KEY (current_hub_id) REFERENCES Hubs(hub_id)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> 
+mysql> CREATE TABLE Payments (
+    ->     payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     shipment_id INT,
+    ->     amount DECIMAL(10,2),
+    ->     payment_type ENUM('Prepaid', 'COD'),
+    ->     payment_status ENUM('Paid', 'Pending', 'Failed'),
+    ->     collected_by INT,
+    ->     FOREIGN KEY (shipment_id) REFERENCES Shipments(shipment_id),
+    ->     FOREIGN KEY (collected_by) REFERENCES Delivery_Boys(boy_id)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> 
+mysql> 
+mysql> 
+mysql> 
+mysql> 
+mysql> -- Insert Hubs
+mysql> INSERT INTO Hubs (hub_code, city, pincode, phone, manager_name) VALUES
+    -> ('DEL01', 'Delhi', '110001', '01123456789', 'Rajesh Khanna'),
+    -> ('MUM01', 'Mumbai', '400001', '02223456789', 'Smita Patil'),
+    -> ('BLR01', 'Bangalore', '560001', '08023456789', 'Arun Kumar'),
+    -> ('HYD01', 'Hyderabad', '500001', '04023456789', 'Lakshmi Rao'),
+    -> ('CHE01', 'Chennai', '600001', '04423456789', 'Karthik Iyer'),
+    -> ('KOL01', 'Kolkata', '700001', '03323456789', 'Debashish Das'),
+    -> ('PUN01', 'Pune', '411001', '02023456789', 'Priyanka Joshi'),
+    -> ('AMD01', 'Ahmedabad', '380001', '07923456789', 'Nirav Shah'),
+    -> ('JAI01', 'Jaipur', '302001', '01412345678', 'Vikram Singh'),
+    -> ('LKO01', 'Lucknow', '226001', '05222345678', 'Anita Yadav');
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Insert Delivery_Boys
+mysql> INSERT INTO Delivery_Boys (name, phone, hub_id, vehicle_type, rating) VALUES
+    -> ('Amit Sharma', '9876543210', 1, 'Bike', 4.5),
+    -> ('Ravi Kumar', '9876543211', 1, 'Van', 4.2),
+    -> ('Sunil Verma', '9876543212', 2, 'Bike', 4.8),
+    -> ('Deepak Singh', '9876543213', 3, 'Bike', 4.3),
+    -> ('Manoj Patel', '9876543214', 4, 'Van', 4.6),
+    -> ('Suresh Reddy', '9876543215', 5, 'Bike', 4.1),
+    -> ('Vijay Gupta', '9876543216', 6, 'Bike', 4.7),
+    -> ('Anil Mehta', '9876543217', 7, 'Van', 4.4),
+    -> ('Rakesh Nair', '9876543218', 8, 'Bike', 4.9),
+    -> ('Dinesh Yadav', '9876543219', 9, 'Bike', 4.0);
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Insert Customers
+mysql> INSERT INTO Customers (name, phone, email, address, city) VALUES
+    -> ('Aditya Malhotra', '9123456780', 'aditya@gmail.com', '45 MG Road', 'Delhi'),
+    -> ('Neha Agarwal', '9123456781', 'neha@gmail.com', '12 Linking Road', 'Mumbai'),
+    -> ('Rohan Shetty', '9123456782', 'rohan@gmail.com', '78 Indiranagar', 'Bangalore'),
+    -> ('Pooja Reddy', '9123456783', 'pooja@gmail.com', '23 Banjara Hills', 'Hyderabad'),
+    -> ('Karan Kapoor', '9123456784', 'karan@gmail.com', '56 T Nagar', 'Chennai'),
+    -> ('Snehal Bose', '9123456785', 'snehal@gmail.com', '89 Park Street', 'Kolkata'),
+    -> ('Divya Kulkarni', '9123456786', 'divya@gmail.com', '34 Koregaon Park', 'Pune'),
+    -> ('Chirag Modi', '9123456787', 'chirag@gmail.com', '67 CG Road', 'Ahmedabad'),
+    -> ('Ritika Choudhary', '9123456788', 'ritika@gmail.com', '90 MI Road', 'Jaipur'),
+    -> ('Alok Mishra', '9123456789', 'alok@gmail.com', '11 Hazratganj', 'Lucknow');
+Query OK, 10 rows affected (0.01 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Insert Shipments
+mysql> INSERT INTO Shipments (tracking_id, cust_id, pickup_hub_id, delivery_hub_id, weight_kg, booking_date) VALUES
+    -> ('TRK100001', 1, 1, 2, 2.50, '2026-05-10 10:30:00'),
+    -> ('TRK100002', 2, 2, 3, 1.20, '2026-05-11 14:15:00'),
+    -> ('TRK100003', 3, 3, 1, 5.00, '2026-05-12 09:00:00'),
+    -> ('TRK100004', 4, 4, 5, 0.80, '2026-05-13 16:45:00'),
+    -> ('TRK100005', 5, 5, 6, 3.75, '2026-05-14 11:20:00'),
+    -> ('TRK100006', 6, 6, 7, 1.50, '2026-05-15 13:10:00'),
+    -> ('TRK100007', 7, 7, 8, 4.25, '2026-05-15 17:30:00'),
+    -> ('TRK100008', 8, 8, 9, 0.50, '2026-05-16 08:45:00'),
+    -> ('TRK100009', 9, 9, 10, 2.00, '2026-05-16 12:00:00'),
+    -> ('TRK100010', 10, 10, 1, 6.30, '2026-05-17 15:25:00');
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Insert Delivery_Status
+mysql> INSERT INTO Delivery_Status (shipment_id, current_hub_id, status, updated_at, remarks) VALUES
+    -> (1, 2, 'Out for Delivery', '2026-05-12 08:00:00', 'With delivery boy'),
+    -> (2, 3, 'Delivered', '2026-05-13 17:30:00', 'Signed by customer'),
+    -> (3, 1, 'Delivered', '2026-05-14 14:20:00', 'Delivered to security'),
+    -> (4, 4, 'In Transit', '2026-05-14 10:00:00', 'Dispatched from hub'),
+    -> (5, 5, 'Booked', '2026-05-14 11:20:00', 'Pickup scheduled'),
+    -> (6, 7, 'In Transit', '2026-05-16 09:15:00', 'Reached destination hub'),
+    -> (7, 7, 'Booked', '2026-05-15 17:30:00', 'Awaiting pickup'),
+    -> (8, 9, 'Out for Delivery', '2026-05-17 09:00:00', 'On the way'),
+    -> (9, 10, 'In Transit', '2026-05-17 07:30:00', 'In transit to hub'),
+    -> (10, 10, 'Booked', '2026-05-17 15:25:00', 'Just booked');
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- Insert Payments
+mysql> INSERT INTO Payments (shipment_id, amount, payment_type, payment_status, collected_by) VALUES
+    -> (1, 250.00, 'Prepaid', 'Paid', NULL),
+    -> (2, 180.50, 'COD', 'Paid', 3),
+    -> (3, 450.00, 'Prepaid', 'Paid', NULL),
+    -> (4, 120.00, 'COD', 'Pending', 5),
+    -> (5, 320.75, 'Prepaid', 'Paid', NULL),
+    -> (6, 200.00, 'COD', 'Paid', 7),
+    -> (7, 380.25, 'Prepaid', 'Paid', NULL),
+    -> (8, 95.00, 'COD', 'Pending', 9),
+    -> (9, 220.50, 'Prepaid', 'Paid', NULL),
+    -> (10, 550.00, 'COD', 'Pending', 10);
+Query OK, 10 rows affected (0.00 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+
+mysql> 
+mysql> -- 1.Increase shipment weight by 1 kg
+mysql> select tracking_id,weight_kg,weight_kg + 1 as increased_weight
+    -> from Shipments
+    -> where weight_kg > 2;
++-------------+-----------+------------------+
+| tracking_id | weight_kg | increased_weight |
++-------------+-----------+------------------+
+| TRK100001   |      2.50 |             3.50 |
+| TRK100003   |      5.00 |             6.00 |
+| TRK100005   |      3.75 |             4.75 |
+| TRK100007   |      4.25 |             5.25 |
+| TRK100010   |      6.30 |             7.30 |
++-------------+-----------+------------------+
+5 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 2.Calculate double payment amount
+mysql> select payment_id,amount,amount * 2 as double_amount
+    -> from Payments
+    -> where amount >= 200;
++------------+--------+---------------+
+| payment_id | amount | double_amount |
++------------+--------+---------------+
+|          1 | 250.00 |        500.00 |
+|          3 | 450.00 |        900.00 |
+|          5 | 320.75 |        641.50 |
+|          6 | 200.00 |        400.00 |
+|          7 | 380.25 |        760.50 |
+|          9 | 220.50 |        441.00 |
+|         10 | 550.00 |       1100.00 |
++------------+--------+---------------+
+7 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 3.Find delivery boys with rating greater than or equal to 4.5
+mysql> select *from Delivery_Boys
+    -> where rating >= 4.5;
++--------+-------------+------------+--------+--------------+--------+
+| boy_id | name        | phone      | hub_id | vehicle_type | rating |
++--------+-------------+------------+--------+--------------+--------+
+|      1 | Amit Sharma | 9876543210 |      1 | Bike         |    4.5 |
+|      3 | Sunil Verma | 9876543212 |      2 | Bike         |    4.8 |
+|      5 | Manoj Patel | 9876543214 |      4 | Van          |    4.6 |
+|      7 | Vijay Gupta | 9876543216 |      6 | Bike         |    4.7 |
+|      9 | Rakesh Nair | 9876543218 |      8 | Bike         |    4.9 |
++--------+-------------+------------+--------+--------------+--------+
+5 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 4.Find customers not from Delhi
+mysql> select * from Customers
+    -> where city != 'Delhi';
++---------+------------------+------------+------------------+------------------+-----------+
+| cust_id | name             | phone      | email            | address          | city      |
++---------+------------------+------------+------------------+------------------+-----------+
+|       2 | Neha Agarwal     | 9123456781 | neha@gmail.com   | 12 Linking Road  | Mumbai    |
+|       3 | Rohan Shetty     | 9123456782 | rohan@gmail.com  | 78 Indiranagar   | Bangalore |
+|       4 | Pooja Reddy      | 9123456783 | pooja@gmail.com  | 23 Banjara Hills | Hyderabad |
+|       5 | Karan Kapoor     | 9123456784 | karan@gmail.com  | 56 T Nagar       | Chennai   |
+|       6 | Snehal Bose      | 9123456785 | snehal@gmail.com | 89 Park Street   | Kolkata   |
+|       7 | Divya Kulkarni   | 9123456786 | divya@gmail.com  | 34 Koregaon Park | Pune      |
+|       8 | Chirag Modi      | 9123456787 | chirag@gmail.com | 67 CG Road       | Ahmedabad |
+|       9 | Ritika Choudhary | 9123456788 | ritika@gmail.com | 90 MI Road       | Jaipur    |
+|      10 | Alok Mishra      | 9123456789 | alok@gmail.com   | 11 Hazratganj    | Lucknow   |
++---------+------------------+------------+------------------+------------------+-----------+
+9 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 5.Average rating of delivery boys by vehicle type
+mysql> SELECT vehicle_type,
+    ->        AVG(rating) AS average_rating
+    -> FROM Delivery_Boys
+    -> GROUP BY vehicle_type;
++--------------+----------------+
+| vehicle_type | average_rating |
++--------------+----------------+
+| Bike         |        4.47143 |
+| Van          |        4.40000 |
++--------------+----------------+
+2 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 6.Total payment amount by payment type
+mysql> SELECT payment_type,
+    ->        SUM(amount) AS total_amount
+    -> FROM Payments
+    -> GROUP BY payment_type;
++--------------+--------------+
+| payment_type | total_amount |
++--------------+--------------+
+| Prepaid      |      1621.50 |
+| COD          |      1145.50 |
++--------------+--------------+
+2 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 7.Find maximum shipment weight for each pickup hub
+mysql> SELECT pickup_hub_id,
+    ->        MAX(weight_kg) AS max_weight
+    -> FROM Shipments
+    -> GROUP BY pickup_hub_id;
++---------------+------------+
+| pickup_hub_id | max_weight |
++---------------+------------+
+|             1 |       2.50 |
+|             2 |       1.20 |
+|             3 |       5.00 |
+|             4 |       0.80 |
+|             5 |       3.75 |
+|             6 |       1.50 |
+|             7 |       4.25 |
+|             8 |       0.50 |
+|             9 |       2.00 |
+|            10 |       6.30 |
++---------------+------------+
+10 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 8.Find minimum payment amount for each payment status
+mysql> SELECT payment_status,
+    ->        MIN(amount) AS minimum_amount
+    -> FROM Payments
+    -> GROUP BY payment_status;
++----------------+----------------+
+| payment_status | minimum_amount |
++----------------+----------------+
+| Paid           |         180.50 |
+| Pending        |          95.00 |
++----------------+----------------+
+2 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 9.Show shipment tracking and current delivery status
+mysql> select s.tracking_id,ds.status,ds.updated_at
+    -> from Shipments s
+    -> join Delivery_Status ds on s.shipment_id = ds.shipment_id;
++-------------+------------------+---------------------+
+| tracking_id | status           | updated_at          |
++-------------+------------------+---------------------+
+| TRK100001   | Out for Delivery | 2026-05-12 08:00:00 |
+| TRK100002   | Delivered        | 2026-05-13 17:30:00 |
+| TRK100003   | Delivered        | 2026-05-14 14:20:00 |
+| TRK100004   | In Transit       | 2026-05-14 10:00:00 |
+| TRK100005   | Booked           | 2026-05-14 11:20:00 |
+| TRK100006   | In Transit       | 2026-05-16 09:15:00 |
+| TRK100007   | Booked           | 2026-05-15 17:30:00 |
+| TRK100008   | Out for Delivery | 2026-05-17 09:00:00 |
+| TRK100009   | In Transit       | 2026-05-17 07:30:00 |
+| TRK100010   | Booked           | 2026-05-17 15:25:00 |
++-------------+------------------+---------------------+
+10 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 10.Find delivery boys with highest rating
+mysql> select name, rating
+    -> from Delivery_Boys
+    -> where rating = (select MAX(rating) from Delivery_Boys);
++-------------+--------+
+| name        | rating |
++-------------+--------+
+| Rakesh Nair |    4.9 |
++-------------+--------+
+1 row in set (0.00 sec)
+
+mysql> 
+mysql> -- 11.Show customers whose shipment weight is above average
+mysql> select c.name,s.tracking_id,s.weight_kg
+    -> from Customers c
+    -> join Shipments s  on c.cust_id = s.cust_id
+    -> where s.weight_kg > (select avg(weight_kg) from Shipments);
++----------------+-------------+-----------+
+| name           | tracking_id | weight_kg |
++----------------+-------------+-----------+
+| Rohan Shetty   | TRK100003   |      5.00 |
+| Karan Kapoor   | TRK100005   |      3.75 |
+| Divya Kulkarni | TRK100007   |      4.25 |
+| Alok Mishra    | TRK100010   |      6.30 |
++----------------+-------------+-----------+
+4 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- 12.Find payments greater than average payment amount
+mysql> select payment_id, amount
+    -> from Payments
+    -> where amount > (select avg(amount) from Payments);
++------------+--------+
+| payment_id | amount |
++------------+--------+
+|          3 | 450.00 |
+|          5 | 320.75 |
+|          7 | 380.25 |
+|         10 | 550.00 |
++------------+--------+
+4 rows in set (0.00 sec)
+
